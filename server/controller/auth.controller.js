@@ -2,9 +2,11 @@ import bycrpt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import { sendEmailOtp } from "../utils/sendEmailOtp.util.js";
+import { sendtwilioOtp } from "../utils/sendPhoneOtp.util.js";
+import { phoneOtpStore } from "../utils/otpStore.js";
 
 const emailOtps = new Map();
-const otpStore = new Map();
+// const otpStore = new Map();
 
 const generatedToken = (id) => jwt.sign({id}, process.env.JWT_SECRET, {expiresIn:'7d'});
 
@@ -97,15 +99,15 @@ export const sendPhoneOtp  = async (req, res) => {
 
     if (!phone || phone.length !== 10) {
     return res.status(400).json({ success: false, message: 'Invalid phone number' });
-  }
+}
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 5 *60 * 1000;
 
-    otpStore.set(phone, { otp, expiresAt});
+    phoneOtpStore.set(phone, { otp, expiresAt});
 
     try {
-        // await sendEmailOtp(email, otp);
+        await sendtwilioOtp(phone, otp);
         return res.status(200).json({
             success: true,
             message:'OTP sent successfully',
@@ -121,7 +123,7 @@ export const sendPhoneOtp  = async (req, res) => {
 export const verifyPhoneOtp  = async (req, res) => {
     const { phone, otp } = req.body;
 
-    const record = otpStore.get(phone);
+    const record = phoneOtpStore.get(phone);
 
     if (!record || record.otp !== otp || Date.now() > record.expiresAt) {
         return res.status(400).json({
@@ -136,11 +138,12 @@ export const verifyPhoneOtp  = async (req, res) => {
         user = await User.create({
         phone,
         name: `User-${phone}`,
+        email: 'email@gmail.com',
         password: 'otp_user_dummy_password',
         });
     }
 
-    otpStore.delete(phone);
+    phoneOtpStore.delete(phone);
 
     return res.status(200).json({
         success: true,
