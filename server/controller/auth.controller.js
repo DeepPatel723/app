@@ -66,7 +66,9 @@ export const VerifyEmailOtpController = async (req, res) => {
     const { email, otp } = req.body;
 
     const record = emailOtps.get(email);
-
+// console.log("emailOtps keys:", [...emailOtps.keys()]);
+// console.log("Requested email:", email);
+// console.log("Stored record:", emailOtps.get(email));
     if (!record || record.otp !== otp || Date.now() > record.expiresAt) {
         return res.status(400).json({
             success: false,
@@ -81,8 +83,6 @@ export const VerifyEmailOtpController = async (req, res) => {
         email,
         name: email.split('@')[0].replace(/\./g, ' ').replace(/_/g, ' ').replace(/-/g, ' ')
             .replace(/\b\w/g, (char) => char.toUpperCase()),
-        phone: '0000000000',
-        password: 'otp_user_dummy_password',
         });
     }
 
