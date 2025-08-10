@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
+import partnerAuthRoutes from "./routes/partnerAuth.route.js";
 import passport from "passport";
 import "./lib/passport.js";
 import session from "express-session";
@@ -32,6 +33,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use("/api/auth", authRoutes);
+app.use("/api/partner-auth", partnerAuthRoutes);
 
 app.listen(PORT,()=>{
     console.log(`Server Started on port:${PORT}`);
