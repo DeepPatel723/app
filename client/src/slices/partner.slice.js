@@ -60,7 +60,7 @@ export const verifyEmailOtpLogin = createAsyncThunk(
 
 export const sendEmailPasswordLogin = createAsyncThunk(
     "partner-auth/sendEmailPasswordLogin",
-    async (email, password) => {
+    async ({ email, password }) => {
         const res = await fetch(`${API_BASE}/login`, {
             method: "POST",
             headers: {
@@ -72,16 +72,37 @@ export const sendEmailPasswordLogin = createAsyncThunk(
     }
 );
 
+export const completePartnerProfile = createAsyncThunk(
+    "/partner-auth/partner-profile",
+    async ({ phone, password, orgname }, { getState }) => {
+        const token =
+        getState().partnerAuth.token || localStorage.getItem("partnerToken");
+        const res = await fetch(`${API_BASE}/profile`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ phone, password, orgname })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Profile update failed");
+        return data;
+    }
+)
+
 const partnerAuthSlice = createSlice({
     name: "partnerAuth",
     initialState: {
         email: "",
-        password:"",
+        password: "",
         emailOtpSent: false,
         emailOtpLoading: false,
         isLoggedIn: false,
         emailOtpError: null,
         message: "",
+         token: localStorage.getItem("partnerToken") || null,
+        isProfileComplete: false,
     },
     reducers: {
         setEmail(state, action) {
@@ -100,6 +121,7 @@ const partnerAuthSlice = createSlice({
                 state.emailOtpLoading = false;
                 state.emailOtpSent = true;
                 state.message = action.payload.message;
+                state.isProfileComplete = action.payload.isProfileComplete;
             })
             .addCase(sendEmailOtp.rejected, (state, action) => {
                 state.emailOtpLoading = false;
@@ -124,9 +146,11 @@ const partnerAuthSlice = createSlice({
             .addCase(verifyEmailOtp.fulfilled, (state, action) => {
                 state.emailOtpLoading = false;
                 state.message = action.payload.message || '';
+                state.isProfileComplete = !!action.payload.isProfileComplete;
                 state.isLoggedIn = action.payload.success;
+                state.token = action.payload.token;
                 if (action.payload.token) {
-                    localStorage.setItem('token', action.payload.token);
+                    localStorage.setItem('partnerToken', action.payload.token);
                 }
             })
             .addCase(verifyEmailOtp.rejected, (state, action) => {
@@ -142,7 +166,7 @@ const partnerAuthSlice = createSlice({
                 state.message = action.payload.message || '';
                 state.isLoggedIn = action.payload.success;
                 if (action.payload.token) {
-                    localStorage.setItem('token', action.payload.token);
+                    localStorage.setItem('partnerToken', action.payload.token);
                 }
             })
             .addCase(verifyEmailOtpLogin.rejected, (state, action) => {
@@ -157,13 +181,18 @@ const partnerAuthSlice = createSlice({
                 state.emailOtpLoading = false;
                 state.message = action.payload.message || '';
                 state.isLoggedIn = action.payload.success;
+                state.isProfileComplete = !!action.payload.isProfileComplete;
                 if (action.payload.token) {
-                    localStorage.setItem('token', action.payload.token);
+                    localStorage.setItem('partnerToken', action.payload.token);
                 }
             })
             .addCase(sendEmailPasswordLogin.rejected, (state, action) => {
                 state.emailOtpLoading = false;
                 state.emailOtpError = action.error?.message || 'Login failed';
+            })
+            .addCase(completePartnerProfile.fulfilled, (state, action) => {
+                state.isProfileComplete = true;
+                state.message = action.payload.message;
             })
 
     },

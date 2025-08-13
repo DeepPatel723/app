@@ -27,12 +27,14 @@ const PartnerUserSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    isProfileComplete: { type: Boolean, default: false },
     createdAt: {
         type: Date,
         default: Date.now,
     },
     // Add any other fields you need (roles, profile, etc.)
-});
+},
+    { timestamps: true });
 
 // Hash password if modified
 PartnerUserSchema.pre('save', async function (next) {

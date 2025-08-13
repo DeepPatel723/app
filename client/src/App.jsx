@@ -8,6 +8,7 @@ import { Route, Routes } from 'react-router-dom'
 import PartnerAuth from './components/PartnerAuth/PartnerAuth'
 import PartnerRegister from './components/PartnerAuth/PartnerRegister'
 import PartnerLogin from './components/PartnerAuth/PartnerLogin'
+import CompletePartnerProfile from './components/PartnerAuth/CompletePartnerProfile'
 
 function App() {
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<div>Home Page</div>} />
         <Route path="/partner" element={<PartnerAuth />}>
           <Route path="register" element={<PartnerRegister />} />
+          <Route path="/partner/complete-profile" element={<CompletePartnerProfile />} />
           <Route path="login" element={<PartnerLogin />} />
         </Route>
       </Routes>
